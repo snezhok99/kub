@@ -24,10 +24,11 @@ spec:
         io.kompose.service: web-server
     spec:
       containers:
-        - image: mhjkeee/crudback
+        - image: nina323/crudback
           name: web-server
           ports:
             - containerPort: 80
+            - containerPort: 443
           resources: {}
       restartPolicy: Always
 status: {}

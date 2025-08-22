@@ -1,0 +1,109 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f9;
+  color: #333;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+h4 {
+  text-align: center;
+}
+
+h1 {
+  background-color: #4CAF50;
+  color: white;
+  padding: 20px;
+  margin: 0;
+}
+
+hr {
+  border: 1px solid #ddd;
+  margin: 20px 0;
+}
+
+.container {
+  width: 80%;
+  margin: auto;
+  text-align: left;
+}
+
+form {
+  margin: 20px 0;
+  padding: 20px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+label {
+  display: inline-block;
+  width: 150px;
+  text-align: right;
+}
+
+input[type="text"] {
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  width: calc(100% - 180px);
+  box-sizing: border-box;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: center;
+  gap: 40px; /* Увеличенный отступ между кнопками */
+  margin-top: 20px;
+}
+
+.save-button {
+  padding: 10px 20px;
+  background-color: #4CAF50; /* Зеленый цвет */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.save-button:hover {
+  background-color: #45a049; /* Более темный зеленый при наведении */
+}
+
+/* Специфичные стили для кнопки "Удалить книгу" */
+.delete-button {
+  padding: 10px 20px;
+  background-color: #f44336; /* Красный цвет для кнопки удаления */
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.delete-button:hover {
+  background-color: #e53935; /* Более темный красный при наведении */
+}
+
+.back-button {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+
+.button {
+  font-size: 18px;
+  margin-bottom: 15px;
+}
+
+.delete-form {
+  margin-left: auto; /* Отталкивает форму удаления к правой стороне */
+  padding: 0;
+}

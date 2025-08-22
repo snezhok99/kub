@@ -27,10 +27,10 @@ spec:
       containers:
         - env:
             - name: MYSQL_DATABASE
-              value: lena
+              value: db2
             - name: MYSQL_ROOT_PASSWORD
               value: secret
-          image: mhjkeee/mysql
+          image: nina323/mysql
           name: db
           ports:
             - containerPort: 3306

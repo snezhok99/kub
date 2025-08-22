@@ -1,0 +1,83 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+.header {
+    background-color: #4CAF50;
+    padding: 20px;
+}
+
+.heading {
+    color: white;
+    font-size: 2em;
+    margin: 0;
+    text-align: center;
+}
+
+.wrapper {
+    width: 90%; /* Увеличить ширину */
+    max-width: 500px; /* Увеличить максимальную ширину */
+    margin: 60px auto; /* Изменить отступ сверху */
+    padding: 25px; /* Увеличить внутренние отступы */
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 10px; /* Увеличить радиус скругления */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Сделать тень более выраженной */
+}
+
+h2 {
+    margin-bottom: 20px; /* Увеличить отступ снизу заголовка */
+    font-size: 1.8em; /* Увеличить размер шрифта заголовка */
+}
+
+.input-box {
+    margin: 20px 0; /* Увеличить отступ между группами полей ввода */
+}
+
+.input-field {
+    margin-bottom: 15px; /* Отступ между полями ввода */
+}
+
+.form-control {
+    padding: 12px; /* Увеличить внутренние отступы в полях ввода */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 1em; /* Увеличить размер шрифта в полях ввода */
+}
+
+.btn {
+    padding: 15px; /* Увеличить внутренние отступы кнопки */
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    font-size: 1em; /* Увеличить размер шрифта кнопки */
+}
+
+.btn:hover {
+    background-color: #45a049;
+}
+
+.loging-link {
+    margin-top: 25px; /* Увеличить отступ сверху для ссылки входа */
+    font-size: 16px; /* Увеличить размер шрифта ссылки */
+}
+
+.loging-link a {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+.loging-link a:hover {
+    text-decoration: underline;
+}

@@ -1,19 +1,20 @@
 version: "3.7"
 services:
   web-server:
-    image: mhjkeee/crudback
+    image: nina323/crudback
     restart: always
     ports:
-      - "8080:80"
+      - "80:80"
+      - "443:443"
     depends_on:
       - db
       - phpmyadmin
   db:
-    image: mhjkeee/mysql
+    image: nina323/mysql
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: 'secret'
-      MYSQL_DATABASE: 'lena'
+      MYSQL_DATABASE: 'db2'
     ports:
       - "3306:3306"
     volumes:

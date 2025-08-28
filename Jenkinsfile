@@ -1,14 +1,17 @@
 pipeline {
-
   agent {
     kubernetes {
       yamlFile 'builder.yaml'
     }
   }
 
+  environment {
+    NAMESPACE = "crud"
+  }
+
   stages {
 
-    stage('Checkout SCM') {
+    stage('Checkout Code') {
       steps {
         checkout scm
       }
@@ -18,12 +21,12 @@ pipeline {
       steps {
         container('kubectl') {
           script {
-            echo 'Проверяем доступ к базе данных...'
-            // Используем kubectl для проверки pod MySQL
-            sh '''
-              POD=$(kubectl get pods -n crud -l app=mysql-master -o jsonpath="{.items[0].metadata.name}")
-              kubectl exec -n crud $POD -- mysqladmin ping -uroot -psecret
-            '''
+            echo 'Проверяем доступ к базе данных через сервис...'
+            // Проверяем, что сервис mysql-master доступен на порту 3306
+            // Если недоступен — команда вернёт ненулевой код выхода
+            sh """
+              timeout 5 bash -c 'echo > /dev/tcp/$(kubectl get svc mysql-master -n ${NAMESPACE} -o jsonpath='{.spec.clusterIP}')/3306'
+            """
           }
         }
       }
@@ -33,11 +36,8 @@ pipeline {
       steps {
         container('kubectl') {
           script {
-            echo 'Проверяем доступ к фронтенду...'
-            sh '''
-              SERVICE_IP=$(kubectl get svc crudback-service -n crud -o jsonpath="{.spec.clusterIP}")
-              curl -s --head http://$SERVICE_IP:8080 | head -n 1
-            '''
+            echo 'Тестируем фронтенд...'
+            sh 'curl -f http://crudback-service.${NAMESPACE}.svc.cluster.local:8080/  exit 1'
           }
         }
       }
@@ -47,13 +47,11 @@ pipeline {
       steps {
         container('kubectl') {
           withCredentials([file(credentialsId: 'kubeconfig-secret-id', variable: 'KUBECONFIG')]) {
-            sh 'kubectl create ns crud || true'
-            sh 'kubectl apply -f ./manifests -n crud'
+            sh 'kubectl create ns ${NAMESPACE}  true'
+            sh 'kubectl apply -f ./manifests -n ${NAMESPACE}'
           }
         }
       }
     }
-
   }
-
 }

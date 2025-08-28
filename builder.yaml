@@ -13,7 +13,10 @@ spec:
     - /bin/cat
     tty: true
   - name: docker
-    image: docker:dind
+    image: docker/compose:latest
+    command:
+    - cat
+    tty: true
     securityContext:
       privileged: true
     volumeMounts:

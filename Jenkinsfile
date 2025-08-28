@@ -1,114 +1,83 @@
 pipeline {
-    agent {
-        kubernetes {
-            yamlFile 'builder.yaml'
-        }
-    }
 
-    stages {
-        stage('Checkout Code') {
-            steps {
-                checkout scm
-            }
-        }
+    agent {
 
-        stage('Test Database') {
-            steps {
-                container('kubectl') {
-                    script {
-                        echo 'Проверяем доступ к базе данных...'
-                        // Проверка TCP соединения на MySQL через DNS-сервис
-                        sh '''
-                        timeout 5 bash -c "</dev/tcp/mysql-master.crud.svc.cluster.local/3306"  exit 1
-                        '''
-                    }
-                }
-            }
-        }
+        kubernetes {
 
-        stage('Test Frontend') {
-            steps {
-                container('kubectl') {
-                    script {
-                        echo 'Проверяем доступ к фронтенду...'
-                        // Проверка TCP соединения на фронтенд через DNS-сервис
-                        sh '''
-                        timeout 5 bash -c "</dev/tcp/crudback-service.crud.svc.cluster.local/8080"  exit 1
-                        '''
-                    }
-                }
-            }
-        }
+            yamlFile 'builder.yaml'
 
-        stage('Deploy App to Kubernetes') {
-            steps {
-                container('kubectl') {
-                    withCredentials([file(credentialsId: 'kubeconfig-secret-id', variable: 'KUBECONFIG')]) {
-                        sh 'kubectl create ns crud || true'
-                        sh 'kubectl apply -f ./manifests -n crud'
-                    }
-                }
-            }
-        }
-    }
+        }
 
-    post {
-        failure {
-            echo 'Ошибка в пайплайне!'
-        }
-    }
-}
-pipeline {
-    agent {
-        kubernetes {
-            yamlFile 'builder.yaml'
-        }
-    }
+    }
 
-    stages {
-        stage('Checkout Code') {
-            steps {
-                checkout scm
-            }
-        }
+    stages {
 
-        stage('Test Database') {
-            steps {
-                container('kubectl') {
-                    script {
-                        echo 'Проверяем доступ к базе данных...'
-                        sh 'timeout 5 bash -c "echo > /dev/tcp/mysql-master.crud.svc.cluster.local/3306"  exit 1'
-                    }
-                }
-            }
-        }
+        stage('Build') {
 
-        stage('Test Frontend') {
-            steps {
-                container('kubectl') {
-                    script {
-                        echo 'Проверяем доступ к фронтенду...'
-                        sh 'timeout 5 bash -c "echo > /dev/tcp/crudback-service.crud.svc.cluster.local/8080"  exit 1'
-                    }
-                }
-            }
-        }
+            steps {
 
-        stage('Deploy App to Kubernetes') {
-            steps {
-                container('kubectl') {
-                    withCredentials([file(credentialsId: 'kubeconfig-secret-id', variable: 'KUBECONFIG')]) {
-                        sh 'kubectl create ns crud || true'
-                        sh 'kubectl apply -f ./manifests -n crud'
-                    }
-                }
-            }
-        }
-    }
+                echo 'Building the application...'
 
-    post {
-        failure {
-            echo 'Ошибка в пайплайне!'
-        }
-    }
+                // Add your build commands here
+
+                sh 'docker-compose build'
+
+            }
+
+        }
+
+        stage('Database Connection Test') {
+
+            steps {
+
+                echo 'Testing database connection...'
+
+                // A shell command to check the database connection.
+
+                // You would need to replace the placeholders with your actual DB credentials and host.
+
+                // For a more robust test, you could run a simple query.
+
+                sh 'mysql -h db2 -uroot -psecret -e "SELECT 1;"'
+
+            }
+
+        }
+
+        stage('Frontend Test') {
+
+            steps {
+
+                echo 'Testing frontend...'
+
+                // Use a tool like Cypress, Selenium, or a simple curl to check if the web server is running
+
+                // You would need to have the web server deployed and accessible for this test.
+
+                sh 'curl --fail http://127.0.0.1:8080'
+
+            }
+
+        }
+
+        stage('Deploy to Kubernetes') {
+
+            steps {
+
+                echo 'Deploying application to Kubernetes...'
+
+                // The provided document mentions this step. This will apply your Kubernetes manifests.
+
+                withCredentials([file(credentialsId: 'kubeconfig-secret-id', variable: 'KUBECONFIG')]) {
+
+                    sh 'kubectl apply -f ./manifests -n crud'
+
+                }
+
+            }
+
+        }
+
+    }
+
 }

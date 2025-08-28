@@ -11,7 +11,7 @@ pipeline {
     stage('Deploy App to Kubernetes') {
       steps {
         container('kubectl') {
-          withCredentials([file(credentialsId: 'mykubeconfig', variable: 'KUBECONFIG')]) {
+          withCredentials([file(credentialsId: 'kubeconfig-secret-id', variable: 'KUBECONFIG')]) {
             sh 'kubectl create ns crud'
             sh 'kubectl apply -f ./manifests -n crud'
           }

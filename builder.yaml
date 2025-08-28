@@ -4,24 +4,8 @@ metadata:
   name: kaniko
 spec:
   containers:
-  - name: jnlp
-    image: jenkins/inbound-agent:latest
-    imagePullPolicy: IfNotPresent
   - name: kubectl
     image: joshendriks/alpine-k8s
     command:
     - /bin/cat
     tty: true
-  - name: docker
-    image: docker/compose:latest
-    command:
-    - cat
-    tty: true
-    securityContext:
-      privileged: true
-    volumeMounts:
-    - name: docker-graph-storage
-      mountPath: /var/lib/docker
-  volumes:
-  - name: docker-graph-storage
-    emptyDir: {}

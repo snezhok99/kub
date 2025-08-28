@@ -4,57 +4,39 @@ pipeline {
             yamlFile 'builder.yaml'
         }
     }
-
     stages {
-
-        stage('Checkout SCM') {
+        stage('Build') {
             steps {
-                checkout scm
+                echo 'Building the application...'
+                // Add your build commands here
+                sh 'docker-compose build'
             }
         }
-
-        stage('Test Database') {
+        stage('Database Connection Test') {
             steps {
-                container('kubectl') {
-                    script {
-                        echo 'Проверяем доступ к базе данных...'
-                        // Используем одинарные кавычки вокруг sh, чтобы Groovy не интерполировал $
-                        sh 'timeout 5 bash -c "echo > /dev/tcp/$(kubectl get svc mysql-master -n crud -o jsonpath=\'{.spec.clusterIP}\')/3306"  exit 1'
-                    }
+                echo 'Testing database connection...'
+                // A shell command to check the database connection.
+                // You would need to replace the placeholders with your actual DB credentials and host.
+                // For a more robust test, you could run a simple query.
+                sh 'mysql -h db2 -uroot -psecret -e "SELECT 1;"'
+            }
+        }
+        stage('Frontend Test') {
+            steps {
+                echo 'Testing frontend...'
+                // Use a tool like Cypress, Selenium, or a simple curl to check if the web server is running
+                // You would need to have the web server deployed and accessible for this test.
+                sh 'curl --fail http://127.0.0.1:8080'
+            }
+        }
+        stage('Deploy to Kubernetes') {
+            steps {
+                echo 'Deploying application to Kubernetes...'
+                // The provided document mentions this step. This will apply your Kubernetes manifests.
+                withCredentials([file(credentialsId: 'kubeconfig-secret-id', variable: 'KUBECONFIG')]) {
+                    sh 'kubectl apply -f ./manifests -n crud'
                 }
             }
-        }
-
-        stage('Test Frontend') {
-            steps {
-                container('kubectl') {
-                    script {
-                        echo 'Проверяем доступ к frontend...'
-                        sh 'timeout 5 bash -c "echo > /dev/tcp/$(kubectl get svc crudback-service -n crud -o jsonpath=\'{.spec.clusterIP}\')/8080"  exit 1'
-                    }
-                }
-            }
-        }
-
-        stage('Deploy App to Kubernetes') {
-            steps {
-                container('kubectl') {
-                    withCredentials([file(credentialsId: 'kubeconfig-secret-id', variable: 'KUBECONFIG')]) {
-                        sh 'kubectl create ns crud || true'
-                        sh 'kubectl apply -f ./manifests -n crud'
-                    }
-                }
-            }
-        }
-
-    }
-
-    post {
-        success {
-            echo 'Пайплайн успешно выполнен!'
-        }
-        failure {
-            echo 'Ошибка в пайплайне!'
         }
     }
 }

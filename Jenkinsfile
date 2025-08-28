@@ -23,7 +23,7 @@ pipeline {
           script {
             echo 'Проверяем доступ к базе данных...'
             // Проверяем, что порт 3306 сервиса mysql-master доступен
-            sh """
+            sh "
               timeout 5 bash -c 'echo > /dev/tcp/$(kubectl get svc mysql-master -n ${NAMESPACE} -o jsonpath="{.spec.clusterIP}")/3306'
             """
           }

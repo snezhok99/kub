@@ -4,39 +4,51 @@ pipeline {
             yamlFile 'builder.yaml'
         }
     }
+
     stages {
-        stage('Build') {
+        stage('Checkout Code') {
             steps {
-                echo 'Building the application...'
-                // Add your build commands here
-                sh 'docker-compose build'
+                checkout scm
             }
         }
-        stage('Database Connection Test') {
+
+        stage('Test Database') {
             steps {
-                echo 'Testing database connection...'
-                // A shell command to check the database connection.
-                // You would need to replace the placeholders with your actual DB credentials and host.
-                // For a more robust test, you could run a simple query.
-                sh 'mysql -h db2 -uroot -psecret -e "SELECT 1;"'
+                container('kubectl') {
+                    script {
+                        echo 'Проверяем доступ к базе данных...'
+                        // Простая проверка, что MySQL слушает порт
+                        sh 'kubectl exec -n crud deploy/mysql-master -- bash -c "mysqladmin ping -uroot -p$MYSQL_ROOT_PASSWORD"'
+                    }
+                }
             }
         }
-        stage('Frontend Test') {
+
+        stage('Test Frontend') {
             steps {
-                echo 'Testing frontend...'
-                // Use a tool like Cypress, Selenium, or a simple curl to check if the web server is running
-                // You would need to have the web server deployed and accessible for this test.
-                sh 'curl --fail http://127.0.0.1:8080'
+                container('kubectl') {
+                    script {
+                        echo 'Проверяем доступ к фронтенду...'
+                        // Простая проверка, что фронтенд возвращает HTTP 200
+                        sh 'kubectl exec -n crud deploy/frontend -- curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 | grep 200'
+                    }
+                }
             }
         }
-        stage('Deploy to Kubernetes') {
+
+        stage('Deploy App to Kubernetes') {
             steps {
-                echo 'Deploying application to Kubernetes...'
-                // The provided document mentions this step. This will apply your Kubernetes manifests.
-                withCredentials([file(credentialsId: 'kubeconfig-secret-id', variable: 'KUBECONFIG')]) {
+                container('kubectl') {
+                    // НЕ трогаем деплой, оставляем рабочий
                     sh 'kubectl apply -f ./manifests -n crud'
                 }
             }
+        }
+    }
+
+    post {
+        failure {
+            echo 'Ошибка в пайплайне!'
         }
     }
 }

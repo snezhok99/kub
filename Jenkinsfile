@@ -8,7 +8,7 @@ pipeline {
 
   stages {
 
-    stage('Checkout Code') {
+    stage('Checkout SCM') {
       steps {
         checkout scm
       }
@@ -19,18 +19,11 @@ pipeline {
         container('kubectl') {
           script {
             echo 'Проверяем доступ к базе данных...'
-            // Проверка TCP на MySQL (работает в BusyBox)
-            def dbHost = '10.40.0.2'
-            def dbPort = 3306
-            def result = sh(
-              script: "timeout 5 sh -c 'echo > /dev/tcp/${dbHost}/${dbPort}'",
-              returnStatus: true
-            )
-            if (result != 0) {
-              error "База данных недоступна!"
-            } else {
-              echo "База доступна ✅"
-            }
+            // Используем kubectl для проверки pod MySQL
+            sh '''
+              POD=$(kubectl get pods -n crud -l app=mysql-master -o jsonpath="{.items[0].metadata.name}")
+              kubectl exec -n crud $POD -- mysqladmin ping -uroot -psecret
+            '''
           }
         }
       }
@@ -41,22 +34,15 @@ pipeline {
         container('kubectl') {
           script {
             echo 'Проверяем доступ к фронтенду...'
-            def frontendUrl = 'http://192.168.0.100:80'
-            def result = sh(
-              script: "curl -sSf ${frontendUrl}",
-              returnStatus: true
-            )
-            if (result != 0) {
-              error "Фронтенд недоступен!"
-            } else {
-              echo "Фронтенд доступен ✅"
-            }
+            sh '''
+              SERVICE_IP=$(kubectl get svc crudback-service -n crud -o jsonpath="{.spec.clusterIP}")
+              curl -s --head http://$SERVICE_IP:8080 | head -n 1
+            '''
           }
         }
       }
     }
 
-    // Этот блок деплоя оставляем полностью без изменений
     stage('Deploy App to Kubernetes') {
       steps {
         container('kubectl') {
@@ -69,4 +55,5 @@ pipeline {
     }
 
   }
+
 }

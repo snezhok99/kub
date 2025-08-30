@@ -1,54 +1,64 @@
 pipeline {
-    agent {
-        kubernetes {
-            yamlFile 'builder.yaml'
-        }
+    agent any
+
+    environment {
+        KUBECONFIG = credentials('kubeconfig-secret-id')   // kubeconfig из Jenkins credentials
+        MYSQL_PASSWORD = credentials('mysql-root-pass')    // пароль от БД (секрет)
     }
 
     stages {
-        stage('Checkout Code') {
+        stage('Check Kubernetes') {
             steps {
-                checkout scm
+                echo '🔍 Проверяем доступ к кластеру...'
+                sh 'kubectl cluster-info'
+                sh 'kubectl get nodes -o wide'
             }
         }
 
         stage('Test Database') {
             steps {
-                container('kubectl') {
-                    script {
-                        echo 'Проверяем доступ к базе данных...'
-                        // Простая проверка, что MySQL слушает порт
-                        sh 'kubectl exec -n crud deploy/mysql-master -- bash -c "mysqladmin ping -uroot -p$MYSQL_ROOT_PASSWORD"'
-                    }
-                }
+                echo '🔍 Проверяем доступ к БД...'
+                sh '''
+                    set -e
+                    kubectl exec -n crud deploy/mysql-master -- \
+                      mysqladmin ping -uroot -p$MYSQL_PASSWORD
+                '''
             }
         }
 
         stage('Test Frontend') {
             steps {
-                container('kubectl') {
-                    script {
-                        echo 'Проверяем доступ к фронтенду...'
-                        // Простая проверка, что фронтенд возвращает HTTP 200
-                        sh 'kubectl exec -n crud deploy/frontend -- curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 | grep 200'
-                    }
-                }
+                echo '🔍 Проверяем доступ к фронту...'
+                sh '''
+                    RESPONSE=$(curl -sSf http://192.168.0.100:80 || true)
+                    if [ -z "$RESPONSE" ]; then
+                      echo "❌ Фронт недоступен"
+                      exit 1
+                    fi
+                    echo "✅ Фронт доступен"
+                '''
             }
         }
 
-        stage('Deploy App to Kubernetes') {
+        stage('Deploy Application') {
             steps {
-                container('kubectl') {
-                    // НЕ трогаем деплой, оставляем рабочий
-                    sh 'kubectl apply -f ./manifests -n crud'
-                }
+                echo '🚀 Деплой приложения...'
+                sh '''
+                    kubectl apply -f k8s/
+                    kubectl rollout status deployment/crudback-app -n crud
+                    kubectl rollout status deployment/mysql-master -n crud
+                    kubectl rollout status deployment/mysql-slave -n crud
+                '''
             }
         }
     }
 
     post {
+        success {
+            echo "🎉 Деплой завершён успешно!"
+        }
         failure {
-            echo 'Ошибка в пайплайне!'
+            echo "❌ Ошибка в пайплайне!"
         }
     }
 }
